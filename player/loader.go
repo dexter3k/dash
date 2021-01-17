@@ -93,24 +93,32 @@ func (l *SwfLoader) parseHeader() error {
 }
 
 func (l *SwfLoader) ReadNextTag() (swf.Tag, error) {
-	if l.stream == nil {
+	tag, err := readNextTag(l.stream)
+	if err == nil {
+		l.Tags = append(l.Tags, tag)
+	}
+	return tag, err
+}
+
+func readNextTag(stream io.Reader) (swf.Tag, error) {
+	if stream == nil {
 		panic("not ready for reading")
 	}
 
 	var codeAndLength uint16
-	if err := bin.Read(l.stream, le, &codeAndLength); err != nil {
+	if err := bin.Read(stream, le, &codeAndLength); err != nil {
 		return nil, err
 	}
 	tagType := uint8(codeAndLength >> 6)
 	tagSize := uint32(codeAndLength & 0x3f)
 	if tagSize == 0x3f {
-		if err := bin.Read(l.stream, le, &tagSize); err != nil {
+		if err := bin.Read(stream, le, &tagSize); err != nil {
 			return nil, err
 		}
 	}
 
 	tagData := make([]byte, tagSize)
-	if err := bin.Read(l.stream, le, &tagData); err != nil {
+	if err := bin.Read(stream, le, &tagData); err != nil {
 		return nil, err
 	}
 	parser := tagParsers[tagType]
@@ -118,9 +126,6 @@ func (l *SwfLoader) ReadNextTag() (swf.Tag, error) {
 		parser = unknownTagParser
 	}
 	tag, err := parser(tagType, tagData)
-	if err == nil {
-		l.Tags = append(l.Tags, tag)
-	}
 	return tag, err
 }
 

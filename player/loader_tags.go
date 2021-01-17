@@ -11,39 +11,215 @@ import (
 )
 
 const (
-	TagEndId                = 0
-	TagShowFrameId          = 1
-	TagDefineShape1Id       = 2
-	TagSetBackgroundColorId = 9
-	TagDefineSoundId        = 14
-	TagDefineShape2Id       = 22
-	TagDefineShape3Id       = 32
-	TagProductInfoId        = 41
-	TagFrameLabelId         = 43
-	TagScriptLimitsId       = 65
-	TagFileAttributesId     = 69
-	TagMetadataId           = 77
-	TagDefineShape4Id       = 83
+	TagEndId                  = 0
+	TagShowFrameId            = 1
+	TagDefineShape1Id         = 2
+	TagSetBackgroundColorId   = 9
+	TagDefineTextId           = 11
+	TagDefineSoundId          = 14
+	TagDefineBitsJPEG2Id      = 21
+	TagDefineShape2Id         = 22
+	TagPlaceObject2Id         = 26
+	TagDefineShape3Id         = 32
+	TagDefineSpriteId         = 39
+	TagProductInfoId          = 41
+	TagFrameLabelId           = 43
+	TagExportAssetsId         = 56
+	TagScriptLimitsId         = 65
+	TagFileAttributesId       = 69
+	TagDefineFontAlignZonesId = 73
+	TagDefineFont3Id          = 75
+	TagSymbolClassId          = 76
+	TagMetadataId             = 77
+	TagDoABCId                = 82
+	TagDefineShape4Id         = 83
+	TagDefineFontNameId       = 88
 )
 
 type tagParser func(tagType uint8, tagData []byte) (swf.Tag, error)
 
 var (
 	tagParsers = [256]tagParser{
-		TagEndId:                endTagParser,
-		TagShowFrameId:          showFrameParser,
-		TagDefineShape1Id:       defineShape123TagParser,
-		TagSetBackgroundColorId: setBackgroundColorParser,
-		TagDefineSoundId:        defineSoundTagParser,
-		TagDefineShape2Id:       defineShape123TagParser,
-		TagDefineShape3Id:       defineShape123TagParser,
-		TagProductInfoId:        productInfoTagParser,
-		TagFrameLabelId:         frameLabelTagParser,
-		TagScriptLimitsId:       scriptLimitsParser,
-		TagFileAttributesId:     fileAttributesTagParser,
-		TagMetadataId:           metadataTagParser,
+		TagEndId:                  endTagParser,
+		TagShowFrameId:            showFrameParser,
+		TagDefineShape1Id:         defineShape123TagParser,
+		TagSetBackgroundColorId:   setBackgroundColorParser,
+		TagDefineTextId:           defineTextParser,
+		TagDefineSoundId:          defineSoundTagParser,
+		TagDefineBitsJPEG2Id:      defineBitsJpeg2Parser,
+		TagDefineShape2Id:         defineShape123TagParser,
+		TagPlaceObject2Id:         placeObject2Parser,
+		TagDefineShape3Id:         defineShape123TagParser,
+		TagProductInfoId:          productInfoTagParser,
+		TagFrameLabelId:           frameLabelTagParser,
+		TagExportAssetsId:         exportAssetsParser,
+		TagScriptLimitsId:         scriptLimitsParser,
+		TagFileAttributesId:       fileAttributesTagParser,
+		TagDefineFontAlignZonesId: defineFontAlignZonesParser,
+		TagDefineFont3Id:          defineFont3Parser,
+		TagSymbolClassId:          symbolClassParser,
+		TagMetadataId:             metadataTagParser,
+		TagDoABCId:                doAbcParser,
+		TagDefineFontNameId:       defineFontNameParser,
 	}
 )
+
+func init() {
+	// prevent init loop..
+	tagParsers[TagDefineSpriteId] = defineSpriteParser
+}
+
+func symbolClassParser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	e := &swf.SymbolClass{}
+	r := bytes.NewBuffer(tagData)
+	var count uint16
+	if err := bin.Read(r, le, &count); err != nil {
+		return nil, err
+	}
+	e.Assets = make([]swf.AssetExport, count)
+	for i := 0; i < int(count); i++ {
+		if err := bin.Read(r, le, &e.Assets[i].Id); err != nil {
+			return nil, err
+		}
+		var err error
+		e.Assets[i].Name, err = r.ReadString(0)
+		e.Assets[i].Name = e.Assets[i].Name[:len(e.Assets[i].Name)-1]
+		if err != nil {
+			return nil, err
+		}
+	}
+	return e, nil
+}
+
+func doAbcParser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	d := &swf.DoABC{}
+	r := bytes.NewBuffer(tagData)
+	var flags uint32
+	if err := bin.Read(r, le, &flags); err != nil {
+		return nil, err
+	}
+	d.LazyInit = (flags & 0x01) != 0
+	var err error
+	d.Name, err = r.ReadString(0)
+	if err != nil {
+		return nil, err
+	}
+	d.Name = d.Name[:len(d.Name)-1]
+	d.Data = r.Bytes()
+	return d, nil
+}
+
+func exportAssetsParser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	e := &swf.ExportAssets{}
+	r := bytes.NewBuffer(tagData)
+	var count uint16
+	if err := bin.Read(r, le, &count); err != nil {
+		return nil, err
+	}
+	e.Assets = make([]swf.AssetExport, count)
+	for i := 0; i < int(count); i++ {
+		if err := bin.Read(r, le, &e.Assets[i].Id); err != nil {
+			return nil, err
+		}
+		var err error
+		e.Assets[i].Name, err = r.ReadString(0)
+		e.Assets[i].Name = e.Assets[i].Name[:len(e.Assets[i].Name)-1]
+		if err != nil {
+			return nil, err
+		}
+	}
+	return e, nil
+}
+
+func defineBitsJpeg2Parser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	b := &swf.DefineBitsJPEG2{}
+	r := bytes.NewBuffer(tagData)
+	if err := bin.Read(r, le, &b.CharacterId); err != nil {
+		return nil, err
+	}
+	b.Data = r.Bytes()
+	return b, nil
+}
+
+func placeObject2Parser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	return &swf.PlaceObject2{}, nil
+}
+
+func defineSpriteParser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	s := &swf.DefineSprite{}
+	r := bytes.NewBuffer(tagData)
+
+	if err := bin.Read(r, le, &s.SpriteId); err != nil {
+		return nil, err
+	}
+	if err := bin.Read(r, le, &s.Frames); err != nil {
+		return nil, err
+	}
+	s.Controls = []swf.Tag{}
+tagLoop:
+	for {
+		raw, err := readNextTag(r)
+		if err != nil {
+			return s, err
+		}
+		s.Controls = append(s.Controls, raw)
+		switch tag := raw.(type) {
+		case *swf.End:
+			break tagLoop
+		case *swf.Unknown:
+			fmt.Printf("Skipping unknown tag inside DefineSprite %3d (%d bytes)\n", tag.Type, len(tag.Data))
+		default:
+			fmt.Printf("Unexpected tag type inside DefineSprite: %T\n", tag)
+		}
+	}
+	return s, nil
+}
+
+
+func defineTextParser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	t := &swf.DefineText{}
+	r := bytes.NewBuffer(tagData)
+	if err := bin.Read(r, le, &t.TextId); err != nil {
+		return nil, err
+	}
+
+	bits := com.NewBitStream(r)
+	if err := bits.ReadRect(&t.Bounds); err != nil {
+		return nil, err
+	}
+	if err := bits.ReadMatrix(&t.Matrix); err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func defineFontNameParser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	f := &swf.DefineFontName{}
+	r := bytes.NewBuffer(tagData)
+	if err := bin.Read(r, le, &f.FontId); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func defineFontAlignZonesParser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	f := &swf.DefineFontAlignZones{}
+	r := bytes.NewBuffer(tagData)
+	if err := bin.Read(r, le, &f.FontId); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+func defineFont3Parser(tagType uint8, tagData []byte) (swf.Tag, error) {
+	f := &swf.DefineFont3{}
+	r := bytes.NewBuffer(tagData)
+	if err := bin.Read(r, le, &f.FontId); err != nil {
+		return nil, err
+	}
+	return f, nil
+}
 
 func parseFillStyles(r io.Reader, tagType uint8) ([]swf.FillStyle, error) {
 	var fillStyleCount int

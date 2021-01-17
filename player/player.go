@@ -94,6 +94,20 @@ func (p *Player) NextTag() error {
 		// ...
 	case *swf.ShowFrame:
 		p.Frame++
+	case *swf.DefineFont3:
+		// ...
+	case *swf.DefineFontAlignZones:
+		// ...
+	case *swf.DefineFontName:
+		// ...
+	case *swf.DefineText:
+		// ...
+	case *swf.ExportAssets:
+		fmt.Println("Exported assets:", tag.Assets)
+	case *swf.DoABC:
+		// ...
+	case *swf.SymbolClass:
+		fmt.Println(tag)
 	case *swf.Unknown:
 		fmt.Printf("Skipping unknown tag %3d (%d bytes)\n", tag.Type, len(tag.Data))
 	default:

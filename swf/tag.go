@@ -38,6 +38,72 @@ type ShowFrame struct {
 	// empty
 }
 
+type DefineFont3 struct {
+	FontId uint16
+	// other fields not implemented
+}
+
+type DefineFontAlignZones struct {
+	FontId uint16
+	// other fields not implemented
+}
+
+type DefineFontName struct {
+	FontId uint16
+	// other fields not implemented
+}
+
+type DefineSprite struct {
+	SpriteId uint16
+	Frames   uint16
+	Controls []Tag
+}
+
+type DefineBitsJPEG2 struct {
+	CharacterId uint16
+	Data        []byte
+}
+
+type AssetExport struct {
+	Id   uint16
+	Name string
+}
+
+type ExportAssets struct {
+	Assets []AssetExport
+}
+
+type DoABC struct {
+	LazyInit bool
+	Name     string
+	Data     []byte
+}
+
+type SymbolClass struct {
+	Assets []AssetExport
+}
+
+type GlyphEntry struct {
+	Index   uint32
+	Advance int32
+}
+
+type TextRecord struct {
+	FontId  uint16
+	Color   com.RGBA
+	Offset  com.Vector2
+	Height  uint16
+	Entries []*GlyphEntry
+}
+
+type DefineText struct {
+	TextId  uint16
+	Bounds  com.Rect
+	Matrix  com.Matrix
+	Records []*TextRecord // not implemented
+}
+
+
 const (
 	SoundUncompressedBigEndian    = 0
 	SoundCompressedADPCM          = 1
