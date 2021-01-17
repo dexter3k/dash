@@ -141,6 +141,102 @@ func (p *parser) parseConstantPool() {
 	if p.err() != nil {
 		return
 	}
+
+	p.readMethodPool()
+	if p.err() != nil {
+		return
+	}
+
+	p.skipMetadataPool()
+	if p.err() != nil {
+		return
+	}
+
+	p.readClassPool()
+}
+
+func (p *parser) readClassPool() {
+	classCount := int(p.u30())
+	p.f.Class = make([]*Class, classCount)
+	for i := 0; i < classCount; i++ {
+		c := &Class{}
+		p.f.Class[i] = c
+
+		c.Name = p.f.Name[p.u30()].(*FullName)
+		super := p.u30()
+		if super != 0 {
+			c.Super = p.f.Name[super]
+		}
+
+		flags, _ := p.r.ReadByte()
+		c.Sealed = (flags & 0x01) != 0
+		c.Final = (flags & 0x02) != 0
+		c.Interface = (flags & 0x04) != 0
+		if (flags & 0x08) != 0 {
+			c.ProtectedSpace = p.f.Space[p.u30()]
+		}
+
+		interfaceCount := int(p.u30())
+		c.Implements = make([]Name, interfaceCount)
+		for j := 0; j < interfaceCount; j++ {
+			c.Implements[j] = p.f.Name[p.u30()]
+		}
+
+		c.Init = p.f.Method[p.u30()]
+		c.Traits = p.readTraits()
+	}
+
+	for i := 0; i < classCount; i++ {
+		p.f.Class[i].StaticInit = p.f.Method[p.u30()]
+		p.f.Class[i].StaticTraits = p.readTraits()
+	}
+}
+
+func (p *parser) readTraits() []Trait {
+	panic("not implemented")
+}
+
+func (p *parser) skipMetadataPool() {
+	metaCount := int(p.u30())
+	for i := 0; i < metaCount; i++ {
+		panic("panik!")
+	}
+}
+
+func (p *parser) readMethodPool() {
+	methodCount := int(p.u30())
+	p.f.Method = make([]*Method, methodCount)
+	for i := 0; i < methodCount; i++ {
+		p.f.Method[i] = &Method{}
+		m := p.f.Method[i]
+
+		paramCount := int(p.u30())
+		m.ReturnType = p.f.Name[int(p.u30())]
+		m.Params = make([]MethodParam, paramCount)
+		for j := 0; j < paramCount; j++ {
+			m.Params[j].Type = p.f.Name[int(p.u30())]
+		}
+
+		m.Name = p.f.String[p.u30()]
+
+		flags, _ := p.r.ReadByte()
+		m.NeedsArguments = (flags & 0x01) != 0
+		m.UsesActivation = (flags & 0x02) != 0
+		m.NeedsRest = (flags & 0x04) != 0
+		if (flags & 0x08) != 0 {
+			optionCount := int(p.u30())
+			for j := 0; j < optionCount; j++ {
+				p.u30()
+				p.r.ReadByte()
+			}
+		}
+		m.UsesDxns = (flags & 40) != 0
+		if (flags & 0x80) != 0 {
+			for j := 0; j < paramCount; j++ {
+				m.Params[j].Name = p.f.String[p.u30()]
+			}
+		}
+	}
 }
 
 func (p *parser) readNamespacePool() {

@@ -48,15 +48,15 @@ type DefaultValue struct {
 	Index uint32
 }
 
-type MethodArgument struct {
+type MethodParam struct {
 	Name    string
 	Type    Name
-	Default []DefaultValue
+	Default DefaultValue
 }
 
 type Method struct {
 	Name       string
-	Arguments  []MethodArgument
+	Params     []MethodParam
 	ReturnType Name
 
 	NeedsArguments bool
