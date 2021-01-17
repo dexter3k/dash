@@ -3,6 +3,7 @@ package player
 import (
 	"fmt"
 
+	"github.com/dexter3k/dash/avm2"
 	"github.com/dexter3k/dash/swf"
 	"github.com/dexter3k/dash/gfx"
 )
@@ -14,6 +15,8 @@ type Player struct {
 	Limits    swf.ScriptLimits
 	Frame     int
 	NextFrame int
+
+	avm2 *avm2.State
 
 	// Sounds map[uint16]*swf.DefineSound
 
@@ -60,6 +63,13 @@ func (p *Player) Play() error {
 	return nil
 }
 
+func (p *Player) initAvm2() {
+	if p.avm2 != nil {
+		return
+	}
+	p.avm2 = avm2.NewState()
+}
+
 func (p *Player) NextTag() error {
 	for p.RootSwf.Head >= len(p.RootSwf.Tags) {
 		_, err := p.RootSwf.ReadNextTag()
@@ -76,6 +86,9 @@ func (p *Player) NextTag() error {
 			break
 		}
 		p.RootSwf.Attributes = tag
+		if p.RootSwf.Attributes.ActionScript3 {
+			p.initAvm2()
+		}
 	case *swf.DefineSound:
 		// define the sound...
 	case *swf.End:
@@ -105,7 +118,7 @@ func (p *Player) NextTag() error {
 	case *swf.ExportAssets:
 		fmt.Println("Exported assets:", tag.Assets)
 	case *swf.DoABC:
-		// ...
+		p.avm2.AddAbc(tag.Name, tag.Data, tag.LazyInit)
 	case *swf.SymbolClass:
 		fmt.Println(tag)
 	case *swf.Unknown:
