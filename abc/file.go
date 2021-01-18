@@ -153,6 +153,25 @@ func (p *parser) parseConstantPool() {
 	}
 
 	p.readClassPool()
+	if p.err() != nil {
+		return
+	}
+
+	p.readScriptPool()
+	if p.err() != nil {
+		return
+	}
+}
+
+func (p *parser) readScriptPool() {
+	scriptCount := int(p.u30())
+	p.f.Script = make([]*Script, scriptCount)
+	for i := 0; i < scriptCount; i++ {
+		p.f.Script[i] = &Script{
+			Init:   p.f.Method[p.u30()],
+			Traits: p.readTraits(),
+		}
+	}
 }
 
 func (p *parser) readClassPool() {
@@ -193,7 +212,47 @@ func (p *parser) readClassPool() {
 }
 
 func (p *parser) readTraits() []Trait {
-	panic("not implemented")
+	traitCount := int(p.u30())
+	traits := make([]Trait, traitCount)
+	for i := 0; i < traitCount; i++ {
+		var base BaseTrait
+		base.Name = p.f.Name[p.u30()].(*FullName)
+		kind, _ := p.r.ReadByte()
+		base.SlotId = p.u30()
+
+		switch (kind & 0x0f) {
+		case 0x00, 0x06:
+			slot := &SlotTrait{
+				Const:     (kind & 0x0f) == 0x06,
+				BaseTrait: base,
+				Type:      p.f.Name[p.u30()],
+				Index:     p.u30(),
+			}
+			if slot.Index != 0 {
+				slot.ValueKind, _ = p.r.ReadByte()
+			}
+			traits[i] = slot
+		case 0x01, 0x02, 0x03:
+			traits[i] = &MethodTrait{
+				BaseTrait: base,
+				Type:      MethodType((kind & 0x0f) - 1),
+				Method:    p.f.Method[p.u30()],
+				Final:     (kind & 0x10) != 0,
+				Override:  (kind & 0x20) != 0,
+			}
+		case 0x04:
+			traits[i] = &ClassTrait{
+				Class: p.f.Class[p.u30()],
+			}
+		default:
+			panic("panik!")
+		}
+
+		if (kind & 0x40) != 0 {
+			panic("panik!")
+		}
+	}
+	return traits
 }
 
 func (p *parser) skipMetadataPool() {

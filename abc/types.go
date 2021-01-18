@@ -72,13 +72,14 @@ type Meta struct {
 type Trait interface{}
 
 type BaseTrait struct {
-	Name   FullName
+	Name   *FullName
 	SlotId uint32
 }
 
 type SlotTrait struct {
 	BaseTrait
 
+	Const     bool
 	Type      Name
 	Index     uint32
 	ValueKind uint8
@@ -96,9 +97,18 @@ type FunctionTrait struct {
 	Function *Method
 }
 
+type MethodType uint8
+const (
+	NormalMethod MethodType = iota
+	GetterMethod
+	SetterMethod
+	GetterSetterMethod
+)
+
 type MethodTrait struct {
 	BaseTrait
 
+	Type     MethodType
 	Method   *Method
 	Final    bool
 	Override bool
