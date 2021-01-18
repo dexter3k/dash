@@ -161,6 +161,51 @@ func (p *parser) parseConstantPool() {
 	if p.err() != nil {
 		return
 	}
+
+	p.readBodyPool()
+	if p.err() != nil {
+		return
+	}
+}
+
+func (p *parser) readPrefixedByteArray() []byte {
+	size := int(p.u30())
+	data := make([]byte, size)
+	_, err := p.r.Read(data)
+	if err != nil {
+		p.error = err
+	}
+	return data
+}
+
+func (p *parser) readBodyExceptions() []Exception {
+	exceptionCount := int(p.u30())
+	exceptions := make([]Exception, exceptionCount)
+	for i := 0; i < exceptionCount; i++ {
+		exceptions[i].From = p.u30()
+		exceptions[i].To = p.u30()
+		exceptions[i].Target = p.u30()
+		exceptions[i].Type = p.f.String[p.u30()]
+		exceptions[i].VarName = p.f.String[p.u30()]
+	}
+	return exceptions
+}
+
+func (p *parser) readBodyPool() {
+	bodyCount := int(p.u30())
+	p.f.Body = make([]*Body, bodyCount)
+	for i := 0; i < bodyCount; i++ {
+		p.f.Body[i] = &Body{
+			Method:     p.f.Method[p.u30()],
+			StackSize:  p.u30(),
+			Locals:     p.u30(),
+			MinScope:   p.u30(),
+			MaxScope:   p.u30(),
+			Code:       p.readPrefixedByteArray(),
+			Exceptions: p.readBodyExceptions(),
+			Traits:     p.readTraits(),
+		}
+	}
 }
 
 func (p *parser) readScriptPool() {
