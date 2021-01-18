@@ -272,8 +272,8 @@ func (p *parser) readTraits() []Trait {
 		switch (kind & 0x0f) {
 		case 0x00, 0x06:
 			slot := &SlotTrait{
-				Const:     (kind & 0x0f) == 0x06,
 				BaseTrait: base,
+				Const:     (kind & 0x0f) == 0x06,
 				Type:      p.f.Name[p.u30()],
 				Index:     p.u30(),
 			}
@@ -291,7 +291,8 @@ func (p *parser) readTraits() []Trait {
 			}
 		case 0x04:
 			traits[i] = &ClassTrait{
-				Class: p.f.Class[p.u30()],
+				BaseTrait: base,
+				Class:     p.f.Class[p.u30()],
 			}
 		default:
 			panic("panik!")
