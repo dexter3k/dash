@@ -58,6 +58,7 @@ type Method struct {
 	Name       string
 	Params     []MethodParam
 	ReturnType Name
+	Body       *Body
 
 	NeedsArguments bool
 	UsesActivation bool

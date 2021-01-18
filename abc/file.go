@@ -205,6 +205,10 @@ func (p *parser) readBodyPool() {
 			Exceptions: p.readBodyExceptions(),
 			Traits:     p.readTraits(),
 		}
+		if p.f.Body[i].Method.Body != nil {
+			panic("wait what")
+		}
+		p.f.Body[i].Method.Body = p.f.Body[i]
 	}
 }
 
