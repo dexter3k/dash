@@ -1,14 +1,14 @@
 package abc
 
 const (
+	Undefined = 0x00
+	String    = 0x01
 	Int       = 0x03
 	Uint      = 0x04
 	Double    = 0x06
-	String    = 0x01
-	True      = 0x0b
 	False     = 0x0a
+	True      = 0x0b
 	Null      = 0x0c
-	Undefined = 0x00
 	// why do we have to list these? why?
 	PublicNamespace          = 0x08
 	PackageNamespace         = 0x15

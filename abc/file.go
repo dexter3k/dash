@@ -3,7 +3,7 @@ package abc
 import (
 	"bytes"
 	bin "encoding/binary"
-	// "fmt"
+	"fmt"
 	"math"
 	"io"
 
@@ -189,7 +189,7 @@ func (p *parser) readNamespacePool() {
 		case 0x05:
 			p.f.Space[i] = Space(PrivateNamespacePrefix + p.f.String[index])
 		default:
-			panic("panik!")
+			panic("Unknown namespace type")
 		}
 
 		// Note: we don't handle versioned spaces at all here
@@ -212,7 +212,7 @@ func (p *parser) readSetPool() {
 		for j := 0; j < spaceCount; j++ {
 			index := p.u30()
 			if index == 0 {
-				panic("panik!")
+				panic("Entry in a namespace set cannot be zero")
 			}
 			p.f.Set[i][j] = p.f.Space[index]
 		}
@@ -269,7 +269,7 @@ func (p *parser) readNamePool() {
 			}
 			set := int(p.u30())
 			if set == 0 {
-				panic("panik!")
+				panic("Indexing a zero namespace set")
 			}
 
 			p.f.Name[i] = &NameSpaceQuery{
@@ -280,7 +280,7 @@ func (p *parser) readNamePool() {
 		case 0x1b, 0x1c: // name specified by bytecode, searched in the set
 			set := int(p.u30())
 			if set == 0 {
-				panic("panik!")
+				panic("Indexing a zero namespace set")
 			}
 
 			p.f.Name[i] = &RuntimeNameSpaceQuery{
@@ -288,7 +288,7 @@ func (p *parser) readNamePool() {
 				Set:      p.f.Set[set],
 			}
 		default:
-			panic("panik!")
+			panic(fmt.Errorf("Unknown namespace kind: %02X", kind))
 		}
 	}
 }
@@ -313,15 +313,27 @@ func (p *parser) readMethodPool() {
 		m.NeedsArguments = (flags & 0x01) != 0
 		m.UsesActivation = (flags & 0x02) != 0
 		m.NeedsRest = (flags & 0x04) != 0
-		if (flags & 0x08) != 0 {
+		m.UsesDxns = (flags & 40) != 0
+
+		if (flags & 0x08) != 0 { // optional values for arguments
 			optionCount := int(p.u30())
-			for j := 0; j < optionCount; j++ {
-				p.u30()
-				p.r.ReadByte()
+
+			// options are for last arguments, left to right
+			for j := paramCount-optionCount; j < paramCount; j++ {
+				m.Params[j].Default.Index = p.u30()
+				kind, err := p.r.ReadByte()
+				if err != nil {
+					p.error = err
+				}
+				m.Params[j].Default.Kind = kind
+				if kind == 0x08 || kind == 0x16 || kind == 0x17 || kind == 0x18 || kind == 0x19 || kind == 0x1a || kind == 0x05 {
+					fmt.Printf("%02x\n", kind)
+					panic("todo: ns usage in options?")
+				}
 			}
 		}
-		m.UsesDxns = (flags & 40) != 0
-		if (flags & 0x80) != 0 {
+
+		if (flags & 0x80) != 0 { // param names specified
 			for j := 0; j < paramCount; j++ {
 				m.Params[j].Name = p.f.String[p.u30()]
 			}
@@ -392,6 +404,16 @@ func (p *parser) readTraits() []Trait {
 			}
 			if slot.Index != 0 {
 				slot.ValueKind, _ = p.r.ReadByte()
+				kind := slot.ValueKind
+				if kind == 0x08 || kind == 0x16 || kind == 0x17 || kind == 0x18 || kind == 0x19 || kind == 0x1a || kind == 0x05 {
+					if kind == 0x08 && base.Name.Name == "mx_internal" {
+						// ok
+					} else {
+						fmt.Println(base.Name)
+						fmt.Printf("%02x\n", kind)
+						panic("todo: ns usage in slot?")
+					}
+				}
 			}
 			traits[i] = slot
 		case 0x01, 0x02, 0x03: // method, getter, setter
@@ -408,11 +430,11 @@ func (p *parser) readTraits() []Trait {
 				Class:     p.f.Class[p.u30()],
 			}
 		default:
-			panic("panik!")
+			panic(fmt.Errorf("Unknown trait kind: %02X", kind & 0x0f))
 		}
 
 		if (kind & 0x40) != 0 {
-			panic("panik!")
+			panic("trait metadata not implemented")
 		}
 	}
 	return traits
@@ -444,7 +466,7 @@ func (p *parser) readBodyPool() {
 			Traits:     p.readTraits(),
 		}
 		if p.f.Body[i].Method.Body != nil {
-			panic("wait what")
+			panic("method got a duplicate body?")
 		}
 		p.f.Body[i].Method.Body = p.f.Body[i]
 	}
@@ -457,7 +479,12 @@ func (p *parser) readBodyExceptions() []Exception {
 		exceptions[i].From = p.u30()
 		exceptions[i].To = p.u30()
 		exceptions[i].Target = p.u30()
-		exceptions[i].Type = p.f.String[p.u30()]
+		index := p.u30()
+		if index != 0 {
+			exceptions[i].Type = p.f.String[index]
+		} else {
+			exceptions[i].Type = "*"
+		}
 		exceptions[i].VarName = p.f.String[p.u30()]
 	}
 	return exceptions
