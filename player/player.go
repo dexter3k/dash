@@ -118,7 +118,9 @@ func (p *Player) NextTag() error {
 	case *swf.ExportAssets:
 		fmt.Println("Exported assets:", tag.Assets)
 	case *swf.DoABC:
-		p.avm2.AddAbc(tag.Name, tag.Data, tag.LazyInit)
+		if err := p.avm2.AddAbc(tag.Name, tag.Data, tag.LazyInit); err != nil {
+			return err
+		}
 	case *swf.SymbolClass:
 		fmt.Println(tag)
 	case *swf.Unknown:

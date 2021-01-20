@@ -99,11 +99,22 @@ type Meta struct {
 	// ignored by vm
 }
 
-type Trait interface{}
+type Trait interface{
+	GetFullName() *FullName
+	GetSlot()     uint32
+}
 
 type BaseTrait struct {
 	Name   *FullName
 	SlotId uint32
+}
+
+func (b *BaseTrait) GetFullName() *FullName {
+	return b.Name
+}
+
+func (b *BaseTrait) GetSlot() uint32 {
+	return b.SlotId
 }
 
 type SlotTrait struct {
