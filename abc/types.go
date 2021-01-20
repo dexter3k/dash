@@ -1,5 +1,34 @@
 package abc
 
+const (
+	Int       = 0x03
+	Uint      = 0x04
+	Double    = 0x06
+	String    = 0x01
+	True      = 0x0b
+	False     = 0x0a
+	Null      = 0x0c
+	Undefined = 0x00
+	// why do we have to list these? why?
+	PublicNamespace          = 0x08
+	PackageNamespace         = 0x15
+	InternalNamespace        = 0x17
+	ProtectedNamespace       = 0x18
+	ExplicitNamespace        = 0x19
+	StaticProtectedNamespace = 0x1a
+	PrivateNamespace         = 0x05
+)
+
+const (
+	PublicNamespacePrefix          = "P"
+	PackageInternalNamespacePrefix = "I"
+	ProtectedNamespacePrefix       = "R"
+	ExplicitNamespacePrefix        = "E"
+	StaticProtectedNamespacePrefix = "S"
+	PrivateNamespacePrefix         = "V"
+)
+
+
 type Space string
 
 type Name interface{}
@@ -157,13 +186,13 @@ type Body struct {
 type File struct {
 	Minor, Major uint16
 
-	Int       []int32
-	Uint      []uint32
-	Number    []float64
-	String    []string
-	Space     []Space
-	Set       [][]Space
-	Name      []Name
+	Int       []int32   // [0] = 0
+	Uint      []uint32  // [0] = 0
+	Number    []float64 // [0] = NaN
+	String    []string  // [0] = ""
+	Space     []Space   // [0] = Public(any)
+	Set       [][]Space // [0] = invalid!
+	Name      []Name    // [0] = invalid!
 
 	Method []*Method
 	Class  []*Class
