@@ -3,7 +3,11 @@ package player
 import (
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
+
+	"github.com/dexter3k/dash/flash"
 	"github.com/dexter3k/dash/avm2"
+	"github.com/dexter3k/dash/abc"
 	"github.com/dexter3k/dash/swf"
 	"github.com/dexter3k/dash/gfx"
 )
@@ -16,9 +20,12 @@ type Player struct {
 	Frame     int
 	NextFrame int
 
-	avm2 *avm2.Core
+	avm2  *avm2.Core
+	flash *flash.Flash
 
 	// Sounds map[uint16]*swf.DefineSound
+
+	rootSprite avm2.Value
 
 	Gfx gfx.Graphics
 }
@@ -68,6 +75,9 @@ func (p *Player) initAvm2() {
 		return
 	}
 	p.avm2 = avm2.NewCore()
+	fl, script := flash.InitBuiltins(p.avm2)
+	p.flash = fl
+	p.avm2.Root.ApplyUserScript(script)
 }
 
 func (p *Player) NextTag() error {
@@ -124,7 +134,20 @@ func (p *Player) NextTag() error {
 			panic("wait")
 		}
 	case *swf.SymbolClass:
-		fmt.Println(tag)
+		fmt.Println("Symbol class:", tag)
+		for _, export := range tag.Assets {
+			if export.Id == 0 {
+				fmt.Println("Setting root sprite", export.Name)
+				name := abc.ParseDotSeparatedName(export.Name)
+				global := p.avm2.App.FindProperty(name)
+				if global == nil {
+					panic("no root found")
+				}
+				root := global.GetProperty(global, name.Spaces, name.Name)
+				panic(string(root.(avm2.Value).GetProperty(root, []string{"V"}, "efont").(avm2.String)))
+				spew.Dump(root)
+			}
+		}
 	case *swf.Unknown:
 		fmt.Printf("Skipping unknown tag %3d (%d bytes)\n", tag.Type, len(tag.Data))
 	default:

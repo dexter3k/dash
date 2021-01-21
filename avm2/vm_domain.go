@@ -1,6 +1,7 @@
 package avm2
 
 import (
+	// "fmt"
 	"github.com/dexter3k/dash/abc"
 )
 

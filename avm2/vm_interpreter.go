@@ -503,6 +503,7 @@ func vm_op_new_array(f *ExecutionFrame) {
 func vm_op_new_class(f *ExecutionFrame) {
 	super := f.top()
 	class := &f.Pool.Classes[f.u30()]
+	fmt.Printf("vm_op_new_class: %s\n", class.Name.GetMangledName())
 	if class.IsInterface {
 		f.set_top(f.Core.CreateInterface(f.Pool, class))
 	} else {

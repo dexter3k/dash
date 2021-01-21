@@ -66,7 +66,7 @@ func (c *Core) WrapDefaultValue(scope *Scope, value interface{}, datatype *abc.M
 	fmt.Println(datatype.GetMangledName())
 	g := scope.Global.Object.(*Global).Domain.FindProperty(datatype)
 	if g == nil {
-		panic("prop not found")
+		panic(fmt.Errorf("WrapDefaultValue: Prop not found: %s", datatype.GetMangledName()))
 	}
 	dt := g.GetProperty(g, datatype.Spaces, datatype.Name)
 
@@ -75,6 +75,8 @@ func (c *Core) WrapDefaultValue(scope *Scope, value interface{}, datatype *abc.M
 	switch x := value.(type) {
 	case int32:
 		v = Int(x)
+	case string:
+		v = String(x)
 	default:
 		// todo
 		panic([]Any{value}[0].(Value))
@@ -208,7 +210,7 @@ func (core *Core) CreateClass(pool *abc.File, c *abc.Class, parentScope *Scope, 
 
 	// Now apply all interfaces this class implements
 	for _, mn := range c.Implements {
-		// fmt.Println("Implementing interface", mn.GetMangledName())
+		fmt.Println("Implementing interface", mn.GetMangledName())
 		// resolve interface class
 		result := scope.FindScopeProperty(mn, true)
 		iface := result.GetProperty(result, mn.Spaces, mn.Name).(*Object_Class)

@@ -168,6 +168,7 @@ func (b *builtins) populateScript(core *Core) {
 	addClass("Array", DefaultNamespace, b.Array)
 	addClass("int", DefaultNamespace, b.Int)
 	addClass("uint", DefaultNamespace, b.Uint)
+	addClass("String", DefaultNamespace, b.String)
 	addClass("Vector", VectorNamespace, b.Vector)
 	// addClass("Date", "P", b.Date)
 	// addClass("Math", "P", b.Math)

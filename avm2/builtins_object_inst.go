@@ -112,8 +112,9 @@ func (o *Object_Object) HasTrait(spaces []string, name string) bool {
 
 func (o *Object_Object) GetProperty(self Any, spaces []string, name string) Any {
 	if o.Traits == nil {
-		panic("missing traits on object")
+		panic(fmt.Errorf("Traits are missing on an object, this should never happen"))
 	}
+
 	t := o.Traits.FindTrait(spaces, name)
 	if t != nil {
 		if t.Get != nil {

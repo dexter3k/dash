@@ -40,7 +40,7 @@ import (
 	"fmt"
 
 	"github.com/dexter3k/dash/abc"
-	// "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type TraitKind int
@@ -225,8 +225,10 @@ func (self *Traits) FindProtected(name string) *Trait {
 }
 
 func (self *Traits) ApplyInterface(iface *Traits) {
-	// spew.Dump(self)
-	// spew.Dump(iface)
+	if false {
+		spew.Dump(self)
+		spew.Dump(iface)
+	}
 	// panic("Applying interface")
 
 	// For each trait that IsMethod()==true, in iface we must have corresponding
@@ -234,6 +236,7 @@ func (self *Traits) ApplyInterface(iface *Traits) {
 	if iface.parent != nil {
 		panic("Nope i didnt test that sorry")
 	}
+
 	for _, trait := range iface.GetAllTraits() {
 		if !trait.IsMethod() {
 			continue
@@ -242,15 +245,16 @@ func (self *Traits) ApplyInterface(iface *Traits) {
 		name := trait.Link.Name()
 
 		ourTrait := self.FindTrait([]string{"P"}, name)
+		// todo: check for getter/setter
 		if ourTrait == nil {
-			panic("Broken interface implementation")
+			panic(fmt.Errorf("Unable to apply interface, class is missing following method: %s", trait.Link.Link()))
 		}
 
 		// Add interfaced shortcut to our lookup
 		if mapping, found := self.lookup[name]; found {
 			old := mapping[trait.Link.Space()]
-			if old != nil {
-				panic("the fyck?")
+			if old != nil && old != ourTrait { // todo: why do we sometimes get old == ourTrait
+				panic(fmt.Errorf("ApplyInterface: some kind of mapping collision encountered for %s", trait.Link.Link()))
 			}
 			mapping[trait.Link.Space()] = ourTrait
 		} else {
@@ -274,6 +278,8 @@ func (self *Traits) AddTrait(trait Trait) {
 			ptr = &self.slots[len(self.slots)-1]
 			ptr.Slot = uint(len(self.slots))
 		} else {
+			// this might happen?
+			// how do we assign zero slots then?
 			panic("VerifyError: assigning slots out-of-order")
 		}
 	} else if trait.IsMethod() {
@@ -337,15 +343,22 @@ func (self *Traits) AddTrait(trait Trait) {
 			ptr.Kind = GetterSetterTrait
 			ptr.Get = old.Get
 		} else {
-			// fmt.Println("Traits override: ", ptr.Link.Link(), old.Link.Link())
+			fmt.Println("Traits override: ", ptr.Link.Link(), old.Link.Link())
 			if !ptr.Override {
 				panic(int(ptr.Kind))
 			}
 		}
 	} else if ptr.Override {
-		fmt.Println(ptr.Link.Link())
-		// spew.Dump(self)
-		panic("Override without override? wtf")
+		// mx.core.FlexBitmap does override public function toString()
+		// which fails because we don't define toString on ony super class
+		// because (flash docs):
+		// https://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/Object.html#toString()
+		// Methods of the Object class are dynamically created on Object's prototype.
+		// To redefine this method in a subclass of Object, do not use the override keyword.
+		// For example, a subclass of Object implements function toString():String instead
+		// of using an override of the base class.
+		fmt.Printf("NOTE: OVERRIDING TRAIT (%s), BUT PARENT CLASS DOES NOT HAVE THAT TRAIT\n", ptr.Link.Link())
+		// panic(fmt.Errorf("Overriding trait (%s), but parent class does not have that trait", ptr.Link.Link()))
 	}
 }
 
@@ -371,18 +384,18 @@ func (self *Traits) GetMethod(index int) *Trait {
 }
 
 func (self *Traits) FindTrait(spaces []string, name string) *Trait {
-	// TODO: caching if appropriate
 	if mapping, found := self.lookup[name]; found {
-		for i := 0; i < len(spaces); i++ {
-			if trait, found := mapping[spaces[i]]; found {
+		for _, space := range spaces {
+			if trait, found := mapping[space]; found {
 				return trait
 			}
 		}
 	}
+
 	if self.parent != nil {
-		// TODO: caching if appropriate
 		return self.parent.FindTrait(spaces, name)
 	}
+
 	return nil
 }
 
