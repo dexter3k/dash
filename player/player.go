@@ -16,7 +16,7 @@ type Player struct {
 	Frame     int
 	NextFrame int
 
-	avm2 *avm2.State
+	avm2 *avm2.Core
 
 	// Sounds map[uint16]*swf.DefineSound
 
@@ -67,7 +67,7 @@ func (p *Player) initAvm2() {
 	if p.avm2 != nil {
 		return
 	}
-	p.avm2 = avm2.NewState()
+	p.avm2 = avm2.NewCore()
 }
 
 func (p *Player) NextTag() error {
@@ -118,8 +118,10 @@ func (p *Player) NextTag() error {
 	case *swf.ExportAssets:
 		fmt.Println("Exported assets:", tag.Assets)
 	case *swf.DoABC:
-		if err := p.avm2.AddAbc(tag.Name, tag.Data, tag.LazyInit); err != nil {
-			return err
+		if tag.LazyInit {
+			p.avm2.App.LoadLazyAbcData(tag.Name, tag.Data)
+		} else {
+			panic("wait")
 		}
 	case *swf.SymbolClass:
 		fmt.Println(tag)
