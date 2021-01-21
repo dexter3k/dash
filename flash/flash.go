@@ -17,7 +17,7 @@ import (
 	// "github.com/dexter3k/dash/flash/filters"
 	// "github.com/dexter3k/dash/flash/geom"
 	// "github.com/dexter3k/dash/flash/globalization"
-	// "github.com/dexter3k/dash/flash/media"
+	"github.com/dexter3k/dash/flash/media"
 	// "github.com/dexter3k/dash/flash/net"
 	// "github.com/dexter3k/dash/flash/printing"
 	// "github.com/dexter3k/dash/flash/profiler"
@@ -47,7 +47,7 @@ type Flash struct {
 	// Filters       filters.Filters
 	// Geom          geom.Geom
 	// Globalization globalization.Globalization
-	// Media         media.Media
+	Media         media.Media
 	// Net           net.Net
 	// Printing      printing.Printing
 	// Profiler      profiler.Profiler
