@@ -27,6 +27,8 @@ type Core struct {
 	InsideExecute bool
 	Exited        bool
 	ExitError     error
+
+	UserPointer interface{}
 }
 
 func NewCore() *Core {

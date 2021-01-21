@@ -75,6 +75,7 @@ func (p *Player) initAvm2() {
 		return
 	}
 	p.avm2 = avm2.NewCore()
+	p.avm2.UserPointer = p
 	fl, script := flash.InitBuiltins(p.avm2)
 	p.flash = fl
 	p.avm2.Root.ApplyUserScript(script)
