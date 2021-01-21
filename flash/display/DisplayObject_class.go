@@ -17,7 +17,7 @@ func CreateClass_DisplayObject(core *avm2.Core, super avm2.Constructible) *Class
 		Object_Class: core.CreateNativeClass("DisplayObject", "flash.display", super),
 	}
 
-	class.InstanceTraits.Initializer = func(args []avm2.Any) avm2.Any {
+	class.InstanceTraits.CreateInstance = func() avm2.Any {
 		panic("ni")
 	}
 

@@ -126,8 +126,9 @@ func (class *Class_Array) InitializeNativeTraits(core *Core) {
 	))
 
 	inst := class.InstanceTraits
-	inst.Initializer = func(args []Any) Any {
-		return Object_Array_Construct(core, args)
+	inst.CreateInstance = func() Any {
+		panic("check me")
+		// return Object_Array_Construct(core, args)
 	}
 	inst.AddTrait(core.NewGetterTrait(
 		"length", "P", func(self Any) Any {

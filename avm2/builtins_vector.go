@@ -28,7 +28,7 @@ func (class *Class_Vector) ApplyType(core *Core, x Any) Constructible {
 }
 
 func (class *Class_Vector) InitializeNativeTraits(core *Core) {
-	class.InstanceTraits.Initializer = func(args []Any) Any {
+	class.InstanceTraits.CreateInstance = func() Any {
 		panic("No really ever possible to happen cuz we override Construct")
 	}
 }

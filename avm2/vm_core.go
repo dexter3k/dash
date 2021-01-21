@@ -199,12 +199,12 @@ func (core *Core) CreateClass(pool *abc.File, c *abc.Class, parentScope *Scope, 
 	class.InstanceTraits.RunConstructor = func(self Any, args []Any) {
 		Execute(core, pool, c.Constructor, scope, self, args)
 	}
-	class.InstanceTraits.Initializer = func(args []Any) Any {
+	class.InstanceTraits.CreateInstance = func() Any {
 		// TODO: objects inheriting native objects?
 		self := &Object_Object{}
-		self.InitTraits(class.InstanceTraits)
-		self.Prototype = class.BasePrototype
-		class.InstanceTraits.RunConstructor(self, args)
+		// self.InitTraits(class.InstanceTraits)
+		// self.Prototype = class.BasePrototype
+		// class.InstanceTraits.RunConstructor(self, args)
 		return self
 	}
 
@@ -251,7 +251,7 @@ func (core *Core) CreateGlobalOnScript(script *Script, d *Domain) {
 	if init.Body == nil {
 		panic("Body is missing from script init method")
 	}
-	global.Traits.Initializer = func(_ []Any) Any {
+	global.Traits.CreateInstance = func() Any {
 		Execute(core, script.Abc, init, script.Scope, script.Global, nil)
 		return Undefined
 	}

@@ -80,8 +80,9 @@ func Class_Vector_uint_Construct(core *Core, args []Any) *Object_Vector_uint {
 
 func (class *Class_Vector_uint) InitializeNativeTraits(core *Core) {
 	inst := class.InstanceTraits
-	inst.Initializer = func(args []Any) Any {
-		return Class_Vector_uint_Construct(core, args)
+	inst.CreateInstance = func() Any {
+		panic("check me")
+		// return Class_Vector_uint_Construct(core, args)
 	}
 	inst.AddTrait(core.NewGetterTrait(
 		"length", "P", func(self Any) Any {

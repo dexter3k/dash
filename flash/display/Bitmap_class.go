@@ -17,7 +17,7 @@ func CreateClass_Bitmap(core *avm2.Core, super avm2.Constructible) *Class_Bitmap
 		Object_Class: core.CreateNativeClass("Bitmap", "flash.display", super),
 	}
 
-	class.InstanceTraits.Initializer = func(args []avm2.Any) avm2.Any {
+	class.InstanceTraits.CreateInstance = func() avm2.Any {
 		panic("ni")
 	}
 

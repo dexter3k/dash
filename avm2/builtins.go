@@ -1,6 +1,7 @@
 package avm2
 
-var kDefaultInitializer = func(_ []Any) Any {
+var kDefaultInitializer = func() Any {
+	panic("ni")
 	return Undefined
 }
 
@@ -53,7 +54,7 @@ func (b *builtins) initializeClasses() {
 
 	// Object instance traits
 	b.Object.InstanceTraits = newTraits(nil)
-	b.Object.InstanceTraits.Initializer = kDefaultInitializer
+	b.Object.InstanceTraits.CreateInstance = kDefaultInitializer
 
 	// Class instance traits inherit object instance
 	b.Class.InstanceTraits = newTraits(b.Object.InstanceTraits)

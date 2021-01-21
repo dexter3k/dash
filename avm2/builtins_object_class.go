@@ -31,6 +31,10 @@ type Object_Object struct {
 	DebugName string
 }
 
+func (obj *Object_Object) GetEmbeddedObject() *Object_Object {
+	return obj
+}
+
 func (class *Class_Object) InitializeNativeTraits(core *Core) {
 	// class.Traits.AddTrait(core.NewConstTrait(
 	// 	1, "length", "P", "int", "P", Int(1),

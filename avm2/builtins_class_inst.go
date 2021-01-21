@@ -4,11 +4,16 @@ func (this *Object_Class) Construct(args []Any) Any {
 	if this.InstanceTraits == nil {
 		panic("Construct: no instance traits")
 	}
-	if this.InstanceTraits.Initializer == nil {
+	if this.InstanceTraits.CreateInstance == nil {
 		panic("Construct: no constructor")
 	}
 
-	return this.InstanceTraits.Initializer(args)
+	self := this.InstanceTraits.CreateInstance()
+	obj := self.(Objectable).GetEmbeddedObject()
+	obj.InitTraits(this.InstanceTraits)
+	obj.Prototype = this.BasePrototype
+	this.InstanceTraits.RunConstructor(self, args)
+	return self
 }
 
 func (this *Object_Class) Call(self Any, args []Any) Any {

@@ -167,6 +167,6 @@ func (d *Domain) executeScript(s *Script) {
 	// We don't need to provide any self value because core
 	// has already set it up
 
-	s.Global.Traits.Initializer(nil)
+	s.Global.Traits.CreateInstance()
 	s.State = Executed
 }

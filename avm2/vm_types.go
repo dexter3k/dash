@@ -53,6 +53,10 @@ type Value interface {
 	GetDebugName() string
 }
 
+type Objectable interface {
+	GetEmbeddedObject() *Object_Object
+}
+
 // Classes and Functions implement this
 type Constructible interface {
 	Value

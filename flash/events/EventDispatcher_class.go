@@ -21,7 +21,7 @@ func CreateClass_EventDispatcher(core *avm2.Core) *Class_EventDispatcher {
 	}
 
 	inst := class.InstanceTraits
-	inst.Initializer = func(args []avm2.Any) avm2.Any {
+	inst.CreateInstance = func() avm2.Any {
 		panic("ni")
 		// return Object_EventDispatcher_Construct(core, obj, args)
 	}

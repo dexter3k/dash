@@ -39,7 +39,7 @@ func (class *Class_Uint) InitializeNativeTraits(core *Core) {
 	))
 
 	inst := class.InstanceTraits
-	inst.Initializer = func(_ []Any) Any {
+	inst.CreateInstance = func() Any {
 		panic("Not implemented")
 	}
 	inst.AddTrait(core.NewMethodTrait(
