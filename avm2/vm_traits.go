@@ -96,8 +96,8 @@ func (t *Trait) IsMethod() bool {
 type Traits struct {
 	parent *Traits // todo: cache parent entries?
 
-	Initializer    func(args []Any) Any
-	RunConstructor func(self Any, args []Any)
+	Initializer    func(args []Any) Any       // creates physical avm object value
+	RunConstructor func(self Any, args []Any) // only runs constructor on allocated object
 
 	// Internal map of traits used for lookup
 	// lookup[name][space] = trait

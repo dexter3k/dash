@@ -3,7 +3,7 @@ package player
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
+	// "github.com/davecgh/go-spew/spew"
 
 	"github.com/dexter3k/dash/flash"
 	"github.com/dexter3k/dash/avm2"
@@ -143,9 +143,9 @@ func (p *Player) NextTag() error {
 				if global == nil {
 					panic("no root found")
 				}
-				root := global.GetProperty(global, name.Spaces, name.Name)
-				panic(string(root.(avm2.Value).GetProperty(root, []string{"V"}, "efont").(avm2.String)))
-				spew.Dump(root)
+				root := global.GetProperty(global, name.Spaces, name.Name).(avm2.Constructible)
+				inst := root.Construct([]avm2.Any{})
+				panic(inst)
 			}
 		}
 	case *swf.Unknown:

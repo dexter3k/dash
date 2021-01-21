@@ -25,7 +25,7 @@ import (
 	// "github.com/dexter3k/dash/flash/security"
 	// "github.com/dexter3k/dash/flash/sensors"
 	// "github.com/dexter3k/dash/flash/system"
-	// "github.com/dexter3k/dash/flash/text"
+	"github.com/dexter3k/dash/flash/text"
 	// "github.com/dexter3k/dash/flash/trace"
 	// "github.com/dexter3k/dash/flash/ui"
 	// "github.com/dexter3k/dash/flash/utils"
@@ -55,7 +55,7 @@ type Flash struct {
 	// Security      security.Security
 	// Sensors       sensors.Sensors
 	// System        system.System
-	// Text          text.Text
+	Text          text.Text
 	// Trace         trace.Trace
 	// Ui            ui.Ui
 	// Utils         utils.Utils
@@ -86,6 +86,9 @@ func InitBuiltins(core *avm2.Core) (*Flash, *avm2.Script) {
 
 	flash.Display.MovieClip = display.CreateClass_MovieClip(core, &flash.Display.Sprite.Object_Class)
 	script.Global.Traits.AddTrait(core.NewClassTrait("MovieClip", "Pflash.display", flash.Display.MovieClip))
+
+	flash.Text.TextField = text.CreateClass_TextField(core, &flash.Display.InteractiveObject.Object_Class)
+	script.Global.Traits.AddTrait(core.NewClassTrait("TextField", "Pflash.text", flash.Text.TextField))
 
 	return flash, script
 }
